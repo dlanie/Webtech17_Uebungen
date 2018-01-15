@@ -1,0 +1,23 @@
+{
+  "name": "Team1",
+  "members": [
+    {
+      "firstname": "Max",
+      "lastname": "Mustermann",
+      "githubname": "m_muster_git",
+      "studipname": "m_muster_studip"
+    },
+    {
+      "firstname": "Hans",
+      "lastname": "Meier",
+      "githubname": "h_meier__git",
+      "studipname": "h_meier_studip"
+    },
+    {
+      "firstname": "Ute",
+      "lastname": "Utensen",
+      "githubname": "u_utensen_git",
+      "studipname": "u_utensen_studip"
+    }
+  ]
+}
