@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Die erste Website</title>
+
+
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css"
+          integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="pure-g">
+    <div class="pure-u-1 pure-u-md-1">
+        Das ist eine Tolle Website!
+    </div>
+
+</header>
+<div class="pure-g">
+    <nav class="sidebar pure-u-1 pure-u-md-1-12">
+        <div class="pure-menu custom-restricted-width">
+            <ul class="pure-menu-list">
+                <li class="pure-menu-item"><a href="/login" class="pure-menu-link">Login</a></li>
+                <li class="pure-menu-item"><a href="/admin" class="pure-menu-link">Admin</a></li>
+                <li class="pure-menu-item"><a href="/chat" class="pure-menu-link">Chat</a></li>
+            </ul>
+        </div>
+    </nav>
+    <section class="content pure-u-1 pure-u-md-11-12">
+        <form class="pure-form" action="/register" method="POST">
+            <table>
+                <tr>
+                    <td><label for="register_loginname">Loginname: </label></td>
+                    <td><input id="register_loginname" name="loginname" type="text" placeholder="Loginname" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="register_username">Username: </label></td>
+                    <td><input id="register_username" name="username" type="text" placeholder="Username" required></td>
+                </tr>
+                <tr>
+                    <td><label for="register_gender">Gender: </label></td>
+                    <td>
+                        <select id="register_gender" name="gender" required>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td><label for="register_adult">Adult: </label></td>
+                    <td><input id="register_adult" name="adult" type="checkbox"></td>
+                </tr>
+                <tr>
+                    <td><label for="register_birthday">Birthday: </label></td>
+                    <td><input id="register_birthday" name="birthday" type="date" required></td>
+                </tr>
+                <tr>
+                    <td><label for="register_password">Password: </label></td>
+                    <td><input id="register_password" name="password" type="password" placeholder="Password" required></td>
+                </tr>
+                <tr>
+                    <td>
+                        <input id="button_register" class="pure-button" type="submit" value="Register">
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </section>
+</div>
+
+<footer class="pure-g">
+    <div class="pure-u-1 pure-u-md-1">
+        Copyright by me!
+    </div>
+
+</footer>
+</body>
+</html>
