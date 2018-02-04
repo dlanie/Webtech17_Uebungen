@@ -226,15 +226,26 @@ class Response:
         :param headers: Additional headers (default: None)
         :return:
         """
+        head="templates/wiki/head.html"
+        foot="templates/wiki/foot.html"
         try:
-            f = open(template, "r", encoding="utf-8")
+            fhead = open(head, "r", encoding="utf-8")
+            ffoot = open(foot, "r", encoding="utf-8")
+            ftmpl = open(template, "r", encoding="utf-8")
         except IOError:
             self.send(500, body="Unable to open template %s." % template)
             return
-        templ = f.read()
+
+        templhead = fhead.read()
+        templ = ftmpl.read()
+        templfoot = ffoot.read()
+        finaltemplate=templhead+templ+templfoot
+        print(type(templ))
         self.send(code=code, headers=headers,
-                  body=templ.format(**dictionary)) # Substitute with dictionary values/keys
-        f.close()
+                  body=finaltemplate.format(**dictionary)) # Substitute with dictionary values/keys
+        fhead.close()
+        ffoot.close()
+        ftmpl.close()
 
     def send_redirect(self, url):
         self.send(302, {'Location': url})

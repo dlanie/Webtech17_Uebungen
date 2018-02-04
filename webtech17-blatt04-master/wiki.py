@@ -44,7 +44,11 @@ class WikiApp(webserver.App):
             raise NoSuchPageError
 
     def get_sitelist(self):
-        return os.listdir("data")
+        sites = os.listdir("data")
+        htmltext=""
+        for i in sites:
+            htmltext = htmltext + "<li class=\"pure-menu-item\"><a href=\"/show/" + i + "\" class=\"pure-menu-link\">"+i+"</a></li>"
+        return htmltext
 
     def markup(self, text):
         """Substitute wiki markup in text with html."""
@@ -84,17 +88,14 @@ class WikiApp(webserver.App):
             response.send_redirect("/edit/" + pagename)
             return
 
-        #get Sites
-        sites = self.get_sitelist()
-        htmltext=""
-        for i in sites:
-            htmltext = htmltext + "<li class=\"pure-menu-item\"><a href=\"/show/" + i + "\" class=\"pure-menu-link\">"+i+"</a></li>"
+
+
 
         # show page
         response.send_template('templates/wiki/show.html',
                                    {'text': self.markup(text),
                                    'pagename': pagename,
-                                    'sitelist': htmltext})
+                                    'sitelist': self.get_sitelist()})
 
     def edit(self, request, response, pathmatch=None):
         """Display wiki page for editing."""
@@ -113,7 +114,8 @@ class WikiApp(webserver.App):
         # fill template and show
         response.send_template('templates/wiki/edit.html',
                                    {'text': text,
-                                   'pagename': pagename})
+                                   'pagename': pagename,
+                                    'sitelist': self.get_sitelist()})
 
     def save(self, request, response, pathmatch=None):
         """Evaluate request and construct response."""
