@@ -12,6 +12,7 @@ A very very simple Wiki
 from server import webserver
 from server.apps.static import StaticApp
 from server.middlewares.session import SessionMiddleware
+from server.middlewares.authentication import AuthMiddleware
 import re
 import os
 
@@ -34,6 +35,8 @@ class WikiApp(webserver.App):
         self.add_route("edit/(?P<pagename>\w+)", self.edit)
         self.add_route("save/(?P<pagename>\w+)", self.save)
         self.add_route("create", self.create)
+        self.add_route("showlogin", self.showlogin)
+        self.add_route("login", self.login)
 
     def read_page(self, pagename):
         """Read wiki page from data directory or raise NoSuchPageError."""
@@ -47,10 +50,11 @@ class WikiApp(webserver.App):
 
     def pages(self):
         """Return a html string for displaying page information."""
-        pages = os.listdir("data")
-        return ''.join(
-            ["<li class='pure-menu-item'><a href='/show/{page}' class='pure-menu-link'>{page}</a></li>".format(page=x)
-             for x in pages])
+        return os.listdir("data")
+        #pages = os.listdir("data")
+        #return ''.join(
+        #    ["<li class='pure-menu-item'><a href='/show/{page}' class='pure-menu-link'>{page}</a></li>".format(page=x)
+        #     for x in pages])
 
     def markup(self, text):
         """Substitute wiki markup in text with html."""
@@ -68,13 +72,28 @@ class WikiApp(webserver.App):
 
     def send_error(self, response, error, text, pagename='main', pagetitle='Error'):
         """Fill the error template and send it."""
-        response.send_template("wikierror.html",
+        response.send_template("wikierror.mustache",
                                {'error': 'No pagename given.',
                                 'text': 'save action needs pagename',
                                 'pages': self.pages(),
                                 'pagename': 'main',
                                 'pagetitle': 'Error: invalid pagename'
                                 }, code=500)
+
+    def login(self, request, response, pathmatch=None):
+        authenticated = request.auth.do()
+
+
+    def showlogin(self, request, response, pathmatch=None):
+        try:
+            pagename = pathmatch.group('pagename') or "main"
+        except IndexError:
+            pagename = "main"  # default pagename
+
+        response.send_template('login.mustache',
+                               {'pagename': pagename,
+                                'pagetitle': 'Show Wiki Page',
+                                'pages': self.pages()})
 
     def show(self, request, response, pathmatch=None):
         """Evaluate request and construct response."""
@@ -92,7 +111,7 @@ class WikiApp(webserver.App):
             return
 
         # show page
-        response.send_template('show.html',
+        response.send_template('show.mustache',
                                    {'text': self.markup(text),
                                     'pagename': pagename,
                                     'pagetitle': 'Show Wiki Page',
@@ -100,66 +119,73 @@ class WikiApp(webserver.App):
 
     def edit(self, request, response, pathmatch=None):
         """Display wiki page for editing."""
+        if request.auth.check() is False:
+            response.send_redirect("/showlogin")
+        else:
+            try:
+                pagename = pathmatch.group('pagename') or "main"
+            except IndexError:
+                pagename = "main"
 
-        try:
-            pagename = pathmatch.group('pagename') or "main"
-        except IndexError:
-            pagename = "main"
+            try:
+                text = self.read_page(pagename)
+            except NoSuchPageError:
+                # use default text if page does not yet exist
+                text = "This page is still empty. Fill it."
 
-        try:
-            text = self.read_page(pagename)
-        except NoSuchPageError:
-            # use default text if page does not yet exist
-            text = "This page is still empty. Fill it."
-
-        # fill template and show
-        response.send_template('edit.html',
-                                   {'text': text,
-                                    'pages': self.pages(),
-                                    'pagetitle': 'Edit wiki page',
-                                    'pagename': pagename})
+            # fill template and show
+            response.send_template('edit.mustache',
+                                       {'text': text,
+                                        'pages': self.pages(),
+                                        'pagetitle': 'Edit wiki page',
+                                        'pagename': pagename})
 
     def create(self, request, response, pathmatch=None):
         """Check name and show error message or edit view."""
-
-        try:
-            pagename = request.params['pagename']
-        except KeyError:
-            return self.send_error(response,'No pagename given.', 'save action needs pagename')
-
-        if not re.match(r"^[a-zA-Z0-9_-]+$", pagename):
-            return self.send_error(response, 'Invalid pagename',
-                                   'Invalid pagename: {}. Use a-z, A-Z, 0-9 and _ or - only.'.format(pagename))
+        if request.auth.check() is False:
+            response.send_redirect("/showlogin")
         else:
-            response.send_redirect("/edit/"+pagename)
+            try:
+                pagename = request.params['pagename']
+            except KeyError:
+                return self.send_error(response,'No pagename given.', 'save action needs pagename')
+
+            if not re.match(r"^[a-zA-Z0-9_-]+$", pagename):
+                return self.send_error(response, 'Invalid pagename',
+                                       'Invalid pagename: {}. Use a-z, A-Z, 0-9 and _ or - only.'.format(pagename))
+            else:
+                response.send_redirect("/edit/"+pagename)
 
     def save(self, request, response, pathmatch=None):
         """Evaluate request and construct response."""
+        if request.auth.check() is False:
+            response.send_redirect("/showlogin")
+        else:
+            try:
+                pagename = pathmatch.group('pagename')
+            except IndexError:
+                # no pagename given: error
+                return self.send_error(response, 'No pagename given.', 'save action needs pagename')
 
-        try:
-            pagename = pathmatch.group('pagename')
-        except IndexError:
-            # no pagename given: error
-            return self.send_error(response, 'No pagename given.', 'save action needs pagename')
+            try:
+                wikitext = request.params['wikitext']
+            except KeyError:
+                # no text given: error
+                return self.send_error(response, 'No text given.', 'save action needs text.')
 
-        try:
-            wikitext = request.params['wikitext']
-        except KeyError:
-            # no text given: error
-            return self.send_error(response, 'No text given.', 'save action needs text.')
+            f = open("data/" + pagename, "w", encoding='utf-8', newline='')
+            f.write(wikitext)
+            f.close()
 
-        f = open("data/" + pagename, "w", encoding='utf-8', newline='')
-        f.write(wikitext)
-        f.close()
-
-        response.send_redirect("/show/"+pagename)
+            response.send_redirect("/show/"+pagename)
 
 
 if __name__ == '__main__':
     s = webserver.Webserver()
-    s.set_templating("python_format")  # use good old string.format for templating (like we used to in the past weeks)
+    s.set_templating("pystache")  # use good old string.format for templating (like we used to in the past weeks)
     s.set_templating_path("templates/wiki")  # where are the templates?
     s.add_app(WikiApp())
     s.add_app(StaticApp(prefix='static', path='static'))
     s.add_middleware(SessionMiddleware())  # let's have sessions (not really needed for this version but if you add auth...)
+    s.add_middleware(AuthMiddleware('login.mustache')) #Authentication middleware
     s.serve()

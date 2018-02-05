@@ -165,6 +165,7 @@ class Request:
         self.path = None
         self.params = {}
         self.origin = None  # will be set from server
+        self.auth = None
 
     def parse(self, conn):
         """Parses an http-Request and return a dictionary with process_request line values and headers."""
@@ -232,6 +233,7 @@ class Response:
         self.cookies = []
         self.body = None  # response body
         self.server = server
+
 
     def add_header(self, key, value):
         """

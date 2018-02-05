@@ -133,4 +133,12 @@ class Session:
         """Returns Cookie object to delete cookie"""
         return Cookie(self.cookiename, '', path='/', expires=Cookie.expiry_date(-1))
 
+    def get_name(self):
+        return self.cookiename
+
+    def get_data(self, key):
+        return self.__getitem__(key)
+
+    def set_data(self, key, value):
+        return self.__setitem__(key, value)
               
