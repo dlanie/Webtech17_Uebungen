@@ -1,0 +1,22 @@
+{
+  "name": "webtech17-blatt08-master",
+  "version": "1.0.0",
+  "description": "Uni Osnabrück, Web-Technologien 2017/2018",
+  "main": "client.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack-dev-server"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jquery": "^3.3.1",
+    "localforage": "^1.5.6"
+  },
+  "devDependencies": {
+    "css-loader": "^0.28.9",
+    "style-loader": "^0.20.1",
+    "webpack-dev-server": "^2.11.1",
+    "webpack": "^3.10.0"
+  }
+}
